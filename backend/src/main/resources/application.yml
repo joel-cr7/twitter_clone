@@ -1,0 +1,14 @@
+spring:
+  application.name: "twitterclone"
+
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/twitter-clone"
+    username: "postgres"
+    password: "postgres"
+
+  jpa:
+    hibernate.ddl-auto: "create"
+    show-sql: "true"
+    properties.hibernate.format_sql: "true"
+
+jwt.secret: "iluewjkhefbkjjKNnmsnjsnALjsjAMmkljk2w73rubfncdhddsjkdy7udygwhd387hfbhcnnh"
