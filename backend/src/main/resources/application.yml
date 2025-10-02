@@ -12,3 +12,5 @@ spring:
     properties.hibernate.format_sql: "true"
 
 jwt.secret: "iluewjkhefbkjjKNnmsnjsnALjsjAMmkljk2w73rubfncdhddsjkdy7udygwhd387hfbhcnnh"
+
+session.allowedSessions: 1

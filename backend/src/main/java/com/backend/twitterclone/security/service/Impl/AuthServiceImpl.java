@@ -9,6 +9,7 @@ import com.backend.twitterclone.security.dto.SignUpDTO;
 import com.backend.twitterclone.security.dto.SignupResponseDTO;
 import com.backend.twitterclone.security.service.AuthService;
 import com.backend.twitterclone.security.service.JWTService;
+import com.backend.twitterclone.security.service.SessionService;
 import com.backend.twitterclone.security.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
 
     private final UserService userService;
+
+    private final SessionService sessionService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -75,6 +78,10 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = jwtService.generateRefreshToken(savedUser);
         log.info("Generated access/refresh token");
 
+        // create session without validating (as its newly created user)
+        sessionService.createSession(savedUser, refreshToken);
+        log.info("Signup user session saved");
+
         return SignupResponseDTO.builder()
                 .userId(savedUser.getUserId())
                 .accessToken(token)
@@ -101,8 +108,14 @@ public class AuthServiceImpl implements AuthService {
 
         // get authenticated user and generate access/refresh token
         User user = (User) authenticatedUser.getPrincipal();
+        log.info("User authenticated successfully, generating access/refresh token");
+
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
+
+        // create session after in-validating any active session for user (if any)
+        sessionService.invalidateAndCreateSession(user, refreshToken);
+        log.info("Login user session saved");
 
         return LoginResponseDTO.builder()
                 .userId(user.getUserId())
@@ -115,6 +128,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponseDTO refreshToken(String refreshToken) {
         Long userId = jwtService.getUserIdFromToken(refreshToken);
+
+        // validate if the refreshToken has an active session else throw error
+        sessionService.validateSession(refreshToken);
+
         User user = userService.findUserById(userId);
         String accessToken = jwtService.generateAccessToken(user);
 
@@ -123,6 +140,12 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    @Override
+    public void logout(String refreshToken) {
+        log.info("Deleting session for user");
+        sessionService.deleteSession(refreshToken);
     }
 
 }

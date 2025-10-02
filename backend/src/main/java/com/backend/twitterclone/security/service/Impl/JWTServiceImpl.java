@@ -30,6 +30,7 @@ public class JWTServiceImpl implements JWTService {
         return Jwts.builder()
                 .subject(user.getUserId().toString())
                 .claim("email", user.getEmail())
+                .claim("roles", user.getRoles().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))      // 30 mins
                 .signWith(getJwtSecret())

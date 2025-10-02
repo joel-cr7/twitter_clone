@@ -53,6 +53,7 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponseDTO> refresh(HttpServletRequest request){
+        // get refreshToken from cookies
         String refreshToken = Arrays.stream(request.getCookies())
                 .filter(cookie -> "refreshToken".equals(cookie.getName()))
                 .findFirst()
@@ -62,6 +63,19 @@ public class AuthController {
         LoginResponseDTO loginResponseDTO = authService.refreshToken(refreshToken);
 
         return ResponseEntity.ok(loginResponseDTO);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request){
+        // get refreshToken from cookies
+        String refreshToken = Arrays.stream(request.getCookies())
+                .filter(cookie -> "refreshToken".equals(cookie.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElseThrow(() -> new AuthenticationServiceException("Refresh token not found in request cookies !!"));
+
+        authService.logout(refreshToken);
+        return ResponseEntity.noContent().build();
     }
 
 }

@@ -1,5 +1,6 @@
 package com.backend.twitterclone.entity;
 
+import com.backend.twitterclone.entity.enums.PlanType;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -20,10 +21,4 @@ public class Verification {
     @Enumerated(EnumType.STRING)
     private PlanType planType;
 
-}
-
-
-enum PlanType{
-    MONTHLY,
-    ANUALLY
 }

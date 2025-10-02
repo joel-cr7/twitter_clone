@@ -1,6 +1,7 @@
 package com.backend.twitterclone.entity;
 
 
+import com.backend.twitterclone.entity.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,12 +9,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity(name = "user")
 @Table(name = "app_user")
@@ -50,11 +54,14 @@ public class User implements UserDetails {
 
     private String bio;
 
+
     // flag to indicate weather the current user from the JWT token is same as the user which we get
     // when using findById (used in UI)
     private boolean isRequiredUser;
 
+
     private boolean isLoggedInWithGoogle;
+
 
     // All tweets of this user
     // Note: if user is deleted, his tweets should also be deleted
@@ -62,12 +69,15 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Tweet> tweets = new ArrayList<>();
 
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Like> likes = new ArrayList<>();
+
 
     // Blue tick verification details
     @Embedded
     private Verification verification;
+
 
     // a user can be follower to many users as well as a user can have many followers (m-to-m)
     // From this JoinTable we can find ---> who 'user1' is following as well as who is following 'user1'
@@ -81,11 +91,20 @@ public class User implements UserDetails {
     private List<User> followers = new ArrayList<>();
 
 
+    // RBAC (role based access control)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private Set<Role> roles;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        // map the above roles to object of SimpleGrantedAuthority
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
+                .collect(Collectors.toSet());
     }
+
 
     @Override
     public String getUsername() {
